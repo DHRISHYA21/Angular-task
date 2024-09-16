@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { DatePipe } from '@angular/common';
 import { Store } from '@ngrx/store';
 import {
   addToReadingList,
@@ -13,7 +14,8 @@ import { Book } from '@tmo/shared/models';
 @Component({
   selector: 'tmo-book-search',
   templateUrl: './book-search.component.html',
-  styleUrls: ['./book-search.component.scss']
+  styleUrls: ['./book-search.component.scss'],
+  providers: [DatePipe]
 })
 export class BookSearchComponent implements OnInit {
   books: ReadingListBook[];
@@ -24,7 +26,8 @@ export class BookSearchComponent implements OnInit {
 
   constructor(
     private readonly store: Store,
-    private readonly fb: FormBuilder
+    private readonly fb: FormBuilder,
+    private readonly datePipe: DatePipe // Inject DatePipe
   ) {}
 
   get searchTerm(): string {
@@ -37,9 +40,9 @@ export class BookSearchComponent implements OnInit {
     });
   }
 
-  formatDate(date: void | string) {
+  formatDate(date: string | undefined) {
     return date
-      ? new Intl.DateTimeFormat('en-US').format(new Date(date))
+      ? this.datePipe.transform(new Date(date), 'MM/dd/yyyy') // Format date using DatePipe
       : undefined;
   }
 
