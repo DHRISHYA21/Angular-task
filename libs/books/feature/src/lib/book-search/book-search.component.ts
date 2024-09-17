@@ -10,6 +10,7 @@ import {
 } from '@tmo/books/data-access';
 import { FormBuilder } from '@angular/forms';
 import { Book } from '@tmo/shared/models';
+import { MatSnackBar } from '@angular/material/snack-bar';
 
 @Component({
   selector: 'tmo-book-search',
@@ -19,6 +20,7 @@ import { Book } from '@tmo/shared/models';
 })
 export class BookSearchComponent implements OnInit {
   books: ReadingListBook[];
+  previousBooks: ReadingListBook[];
 
   searchForm = this.fb.group({
     term: ''
@@ -27,7 +29,8 @@ export class BookSearchComponent implements OnInit {
   constructor(
     private readonly store: Store,
     private readonly fb: FormBuilder,
-    private readonly datePipe: DatePipe // Inject DatePipe
+    private readonly datePipe: DatePipe, // Inject DatePipe
+    private readonly snackBar: MatSnackBar
   ) {}
 
   get searchTerm(): string {
@@ -47,7 +50,18 @@ export class BookSearchComponent implements OnInit {
   }
 
   addBookToReadingList(book: Book) {
-    this.store.dispatch(addToReadingList({ book }));
+    this.previousBooks = [...this.books]; // Save current state for undo  
+    this.store.dispatch(addToReadingList({ book }));  
+
+    // Open Snackbar with Undo action  
+    const snackBarRef = this.snackBar.open(`Added "${book.title}" to reading list`, 'Undo', {  
+      duration: 3000,  
+    });
+
+    // Handle the Undo action  
+    snackBarRef.onAction().subscribe(() => {  
+      this.books = [...this.previousBooks]; 
+    });
   }
 
   searchExample() {
