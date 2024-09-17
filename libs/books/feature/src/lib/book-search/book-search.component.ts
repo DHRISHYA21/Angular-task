@@ -10,6 +10,7 @@ import {
 } from '@tmo/books/data-access';
 import { FormBuilder } from '@angular/forms';
 import { Book } from '@tmo/shared/models';
+import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 
 @Component({
   selector: 'tmo-book-search',
@@ -37,7 +38,19 @@ export class BookSearchComponent implements OnInit {
   ngOnInit(): void {
     this.store.select(getAllBooks).subscribe(books => {
       this.books = books;
+      
     });
+       // Instant search with valueChanges
+       this.searchForm.controls.term.valueChanges.pipe(
+        debounceTime(300), // Wait 300ms after user stops typing
+        distinctUntilChanged() // Only search if the term has changed
+      ).subscribe(term => {
+        if (term) {
+          this.store.dispatch(searchBooks({ term })); // Dispatch search action
+        } else {
+          this.store.dispatch(clearSearch()); // Clear search if input is empty
+        }
+      });
   }
 
   formatDate(date: string | undefined) {
